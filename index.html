@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Areca & Brew — Indiranagar, Bengaluru</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f5efe6;
+    --espresso: #2c1810;
+    --sienna: #8b4513;
+    --gold: #c9962a;
+    --sage: #7a8c6e;
+    --rose: #d4927a;
+    --charcoal: #1a1a1a;
+    --milk: #faf6f0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--espresso);
+    color: var(--cream);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--gold);
+    border-radius: 50%;
+    position: fixed; z-index: 9999;
+    pointer-events: none;
+    transition: transform 0.1s ease;
+    transform: translate(-50%, -50%);
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1.5px solid var(--gold);
+    border-radius: 50%;
+    position: fixed; z-index: 9998;
+    pointer-events: none;
+    transition: transform 0.35s ease, width 0.3s, height 0.3s, opacity 0.3s;
+    transform: translate(-50%, -50%);
+    opacity: 0.6;
+  }
+
+  /* ── LOADER ── */
+  #loader {
+    position: fixed; inset: 0;
+    background: var(--espresso);
+    z-index: 10000;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .loader-text {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 4rem);
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    animation: fadeInUp 0.8s ease forwards;
+  }
+  .loader-bar {
+    width: 200px; height: 1px;
+    background: rgba(201,150,42,0.2);
+    overflow: hidden;
+  }
+  .loader-fill {
+    height: 100%;
+    background: var(--gold);
+    animation: loadFill 2.2s ease forwards;
+  }
+  .loader-sub {
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(245,239,230,0.5);
+    opacity: 0;
+    animation: fadeIn 0.5s 0.5s ease forwards;
+  }
+  @keyframes loadFill { from { width: 0 } to { width: 100% } }
+  @keyframes fadeIn { to { opacity: 1 } }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px) }
+    to { opacity: 1; transform: translateY(0) }
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; width: 100%; z-index: 1000;
+    padding: 24px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    transition: background 0.5s, padding 0.4s, backdrop-filter 0.5s;
+  }
+  nav.scrolled {
+    background: rgba(44,24,16,0.85);
+    backdrop-filter: blur(16px);
+    padding: 16px 48px;
+    border-bottom: 1px solid rgba(201,150,42,0.15);
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--gold);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+  }
+  .nav-logo span { font-style: italic; color: var(--cream); }
+  .nav-links { display: flex; gap: 36px; list-style: none; }
+  .nav-links a {
+    color: rgba(245,239,230,0.7);
+    text-decoration: none;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: color 0.3s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute; bottom: -4px; left: 0;
+    width: 0; height: 1px;
+    background: var(--gold);
+    transition: width 0.3s ease;
+  }
+  .nav-links a:hover { color: var(--gold); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-reserve {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 10px 24px;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: none;
+    transition: background 0.3s, color 0.3s;
+  }
+  .nav-reserve:hover { background: var(--gold); color: var(--espresso); }
+
+  /* ── HERO ── */
+  #hero {
+    height: 100vh;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 60% 50%, #3d1f0e 0%, #1a0d06 70%);
+  }
+  /* Floating coffee beans */
+  .bean {
+    position: absolute;
+    width: 8px; height: 14px;
+    border-radius: 50%;
+    background: var(--sienna);
+    opacity: 0;
+    animation: floatBean linear infinite;
+  }
+  @keyframes floatBean {
+    0% { transform: translateY(110vh) rotate(0deg); opacity: 0 }
+    10% { opacity: 0.4 }
+    90% { opacity: 0.2 }
+    100% { transform: translateY(-10vh) rotate(360deg); opacity: 0 }
+  }
+
+  /* Particle steam */
+  .steam-particle {
+    position: absolute;
+    bottom: 0; left: 50%;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: rgba(245,239,230,0.15);
+    animation: steam linear infinite;
+  }
+  @keyframes steam {
+    0% { transform: translate(-50%, 0) scale(1); opacity: 0.3 }
+    100% { transform: translate(calc(-50% + var(--drift)), -200px) scale(3); opacity: 0 }
+  }
+
+  /* Hero circle art */
+  .hero-circle {
+    position: absolute;
+    width: min(70vw, 600px); height: min(70vw, 600px);
+    border-radius: 50%;
+    border: 1px solid rgba(201,150,42,0.15);
+    animation: rotateSlow 40s linear infinite;
+  }
+  .hero-circle:nth-child(2) {
+    width: min(80vw, 700px); height: min(80vw, 700px);
+    border-color: rgba(201,150,42,0.08);
+    animation-direction: reverse;
+    animation-duration: 60s;
+  }
+  .hero-circle-dot {
+    position: absolute;
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    top: -3px; left: calc(50% - 3px);
+  }
+  @keyframes rotateSlow { to { transform: rotate(360deg); } }
+
+  .hero-content {
+    position: relative; z-index: 2;
+    text-align: center;
+    padding: 0 20px;
+  }
+  .hero-eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.8s 2.8s ease forwards;
+  }
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3.5rem, 10vw, 9rem);
+    font-weight: 900;
+    line-height: 0.9;
+    margin: 24px 0 20px;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUp 0.9s 3s ease forwards;
+  }
+  .hero-title em {
+    font-style: italic;
+    color: var(--gold);
+    display: block;
+    font-size: 0.65em;
+    letter-spacing: 0.05em;
+  }
+  .hero-subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    font-style: italic;
+    color: rgba(245,239,230,0.65);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.8s 3.2s ease forwards;
+    max-width: 480px;
+    margin: 0 auto 40px;
+  }
+  .hero-cta {
+    display: inline-flex; gap: 16px; align-items: center;
+    opacity: 0;
+    animation: fadeInUp 0.8s 3.5s ease forwards;
+  }
+  .btn-primary {
+    background: var(--gold);
+    color: var(--espresso);
+    padding: 16px 40px;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    font-weight: 500;
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: inline-block;
+    cursor: none;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px rgba(201,150,42,0.3);
+  }
+  .btn-ghost {
+    color: var(--cream);
+    text-decoration: none;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    display: inline-flex; align-items: center; gap: 10px;
+    transition: color 0.3s, gap 0.3s;
+    cursor: none;
+  }
+  .btn-ghost::after { content: '→'; transition: transform 0.3s; }
+  .btn-ghost:hover { color: var(--gold); gap: 16px; }
+  .btn-ghost:hover::after { transform: translateX(4px); }
+
+  .scroll-hint {
+    position: absolute; bottom: 40px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    opacity: 0;
+    animation: fadeIn 1s 4s ease forwards;
+  }
+  .scroll-hint span {
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(245,239,230,0.4);
+  }
+  .scroll-line {
+    width: 1px; height: 50px;
+    background: linear-gradient(to bottom, rgba(201,150,42,0.6), transparent);
+    animation: scrollPulse 2s ease infinite;
+  }
+  @keyframes scrollPulse {
+    0%, 100% { transform: scaleY(1); opacity: 0.6 }
+    50% { transform: scaleY(1.3); opacity: 1 }
+  }
+
+  /* ── MARQUEE ── */
+  .marquee-section {
+    border-top: 1px solid rgba(201,150,42,0.2);
+    border-bottom: 1px solid rgba(201,150,42,0.2);
+    padding: 18px 0;
+    overflow: hidden;
+    background: rgba(201,150,42,0.06);
+  }
+  .marquee-track {
+    display: flex;
+    gap: 60px;
+    animation: marqueeSlide 25s linear infinite;
+    white-space: nowrap;
+  }
+  .marquee-item {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--gold);
+    display: flex; align-items: center; gap: 20px;
+    flex-shrink: 0;
+  }
+  .marquee-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--rose); }
+  @keyframes marqueeSlide { to { transform: translateX(-50%) } }
+
+  /* ── SECTIONS ── */
+  section { padding: 120px 0; }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+
+  .section-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .section-label::before {
+    content: '';
+    width: 30px; height: 1px;
+    background: var(--gold);
+    display: block;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .section-title em { font-style: italic; color: var(--gold); }
+
+  /* ── ABOUT ── */
+  #about {
+    background: var(--milk);
+    color: var(--espresso);
+  }
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+  .about-visual {
+    position: relative;
+    height: 500px;
+  }
+  .about-img-card {
+    position: absolute;
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(44,24,16,0.2);
+  }
+  .about-img-card.main {
+    width: 75%; height: 85%;
+    top: 0; left: 0;
+    background: linear-gradient(135deg, #5c3317, #3d1f0e);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 80px;
+  }
+  .about-img-card.accent {
+    width: 50%; height: 55%;
+    bottom: 0; right: 0;
+    background: linear-gradient(135deg, #8b4513, #c9962a);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 60px;
+  }
+  .card-inner {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    color: rgba(245,239,230,0.8);
+  }
+  .card-inner span {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .year-badge {
+    position: absolute;
+    top: 50%; right: -20px;
+    transform: translateY(-50%);
+    background: var(--gold);
+    color: var(--espresso);
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    z-index: 2;
+    box-shadow: 0 10px 30px rgba(201,150,42,0.3);
+  }
+  .year-badge small { font-size: 0.5rem; letter-spacing: 0.15em; text-transform: uppercase; }
+
+  .about-text .section-label { color: var(--sienna); }
+  .about-text .section-label::before { background: var(--sienna); }
+  .about-text .section-title em { color: var(--sienna); }
+  .about-body {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    line-height: 1.9;
+    color: rgba(44,24,16,0.75);
+    margin-bottom: 24px;
+  }
+  .about-stats {
+    display: flex; gap: 40px; margin-top: 40px;
+    padding-top: 40px;
+    border-top: 1px solid rgba(44,24,16,0.1);
+  }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--sienna);
+  }
+  .stat-num sup { font-size: 0.5em; }
+  .stat-label { font-size: 0.75rem; color: rgba(44,24,16,0.5); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* ── MENU ── */
+  #menu { background: var(--espresso); }
+  .menu-tabs {
+    display: flex; gap: 0;
+    margin-bottom: 64px;
+    border-bottom: 1px solid rgba(201,150,42,0.2);
+  }
+  .tab-btn {
+    background: none; border: none;
+    color: rgba(245,239,230,0.4);
+    padding: 16px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: none;
+    transition: color 0.3s;
+    position: relative;
+  }
+  .tab-btn.active { color: var(--gold); }
+  .tab-btn.active::after {
+    content: '';
+    position: absolute; bottom: -1px; left: 0; right: 0;
+    height: 2px; background: var(--gold);
+  }
+  .tab-btn:hover { color: var(--cream); }
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+  .menu-item {
+    background: rgba(245,239,230,0.04);
+    padding: 36px 32px;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.4s, transform 0.3s;
+    cursor: none;
+  }
+  .menu-item::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(201,150,42,0.08) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .menu-item:hover { background: rgba(245,239,230,0.08); }
+  .menu-item:hover::before { opacity: 1; }
+  .menu-item-icon { font-size: 2.5rem; margin-bottom: 16px; display: block; }
+  .menu-item-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    color: var(--cream);
+  }
+  .menu-item-desc {
+    font-size: 0.85rem;
+    color: rgba(245,239,230,0.5);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .menu-item-footer {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .menu-price {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--gold);
+  }
+  .menu-tag {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border: 1px solid;
+    color: var(--sage);
+    border-color: var(--sage);
+  }
+  .menu-tag.hot { color: var(--rose); border-color: var(--rose); }
+  .tab-content { display: none; }
+  .tab-content.active { display: grid; }
+
+  /* ── AMBIANCE ── */
+  #ambiance {
+    background: linear-gradient(180deg, var(--espresso) 0%, #1a0d06 100%);
+    overflow: hidden;
+  }
+  .ambiance-header { text-align: center; margin-bottom: 80px; }
+  .gallery-scroll {
+    display: flex; gap: 20px;
+    overflow-x: auto;
+    padding: 20px 48px 40px;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+    cursor: none;
+  }
+  .gallery-scroll::-webkit-scrollbar { display: none; }
+  .gallery-card {
+    flex-shrink: 0;
+    width: 340px; height: 460px;
+    border-radius: 4px;
+    position: relative; overflow: hidden;
+    scroll-snap-align: start;
+    background: linear-gradient(180deg, transparent 40%, rgba(44,24,16,0.9) 100%);
+  }
+  .gallery-bg {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 120px;
+    transition: transform 0.6s ease;
+  }
+  .gallery-card:hover .gallery-bg { transform: scale(1.05); }
+  .gallery-label {
+    position: absolute; bottom: 28px; left: 28px;
+  }
+  .gallery-label h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    margin-bottom: 4px;
+  }
+  .gallery-label p {
+    font-size: 0.75rem;
+    color: rgba(245,239,230,0.6);
+    letter-spacing: 0.1em;
+  }
+
+  /* ── SPECIALS ── */
+  #specials { background: var(--milk); color: var(--espresso); }
+  .specials-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    min-height: 600px;
+  }
+  .special-panel {
+    padding: 80px 60px;
+    position: relative;
+    overflow: hidden;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  .special-panel:first-child {
+    background: var(--espresso);
+    color: var(--cream);
+  }
+  .special-panel:last-child {
+    background: var(--gold);
+    color: var(--espresso);
+  }
+  .special-bg-num {
+    position: absolute; top: -20px; right: -20px;
+    font-family: 'Playfair Display', serif;
+    font-size: 14rem;
+    font-weight: 900;
+    opacity: 0.05;
+    line-height: 1;
+    pointer-events: none;
+  }
+  .special-emoji { font-size: 3rem; margin-bottom: 24px; }
+  .special-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    margin-bottom: 12px;
+  }
+  .special-desc {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    opacity: 0.7;
+    margin-bottom: 32px;
+  }
+  .special-price {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+
+  /* ── LOCATION ── */
+  #location { background: var(--charcoal); }
+  .location-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 80px;
+    align-items: start;
+  }
+  .location-info { padding-top: 20px; }
+  .location-info .section-label::before { background: var(--gold); }
+  .info-block { margin-bottom: 36px; }
+  .info-block h4 {
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .info-block p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    line-height: 1.7;
+    color: rgba(245,239,230,0.75);
+  }
+  .map-placeholder {
+    background: rgba(245,239,230,0.04);
+    border: 1px solid rgba(201,150,42,0.2);
+    border-radius: 4px;
+    height: 420px;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .map-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(201,150,42,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,150,42,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .map-pin-container {
+    position: relative; z-index: 1;
+    text-align: center;
+  }
+  .map-pin {
+    font-size: 3.5rem;
+    animation: pinBounce 2s ease infinite;
+  }
+  @keyframes pinBounce {
+    0%, 100% { transform: translateY(0) }
+    50% { transform: translateY(-10px) }
+  }
+  .map-tag {
+    background: var(--gold);
+    color: var(--espresso);
+    padding: 8px 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    margin-top: 12px;
+    display: inline-block;
+  }
+  .map-radius {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(201,150,42,0.2);
+    animation: radiusPulse 3s ease infinite;
+  }
+  .map-radius:nth-child(1) { width: 100px; height: 100px; animation-delay: 0s; }
+  .map-radius:nth-child(2) { width: 200px; height: 200px; animation-delay: 0.5s; }
+  .map-radius:nth-child(3) { width: 300px; height: 300px; animation-delay: 1s; }
+  @keyframes radiusPulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 0.15; transform: scale(1.05); }
+  }
+
+  /* ── TESTIMONIALS ── */
+  #testimonials { background: var(--espresso); }
+  .testimonials-header { text-align: center; margin-bottom: 80px; }
+  .testimonials-track-wrap { overflow: hidden; }
+  .testimonials-track {
+    display: flex; gap: 24px;
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  .testimonial-card {
+    flex-shrink: 0;
+    width: calc(33.333% - 16px);
+    background: rgba(245,239,230,0.04);
+    border: 1px solid rgba(201,150,42,0.12);
+    padding: 48px 40px;
+    position: relative;
+  }
+  .testimonial-quote {
+    font-family: 'Playfair Display', serif;
+    font-size: 4rem;
+    color: var(--gold);
+    opacity: 0.3;
+    line-height: 0.5;
+    margin-bottom: 24px;
+  }
+  .testimonial-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem;
+    font-style: italic;
+    line-height: 1.8;
+    color: rgba(245,239,230,0.8);
+    margin-bottom: 32px;
+  }
+  .testimonial-author { display: flex; align-items: center; gap: 16px; }
+  .author-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--sienna);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+  }
+  .author-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--cream);
+  }
+  .author-detail {
+    font-size: 0.75rem;
+    color: rgba(245,239,230,0.4);
+    letter-spacing: 0.1em;
+  }
+  .stars { color: var(--gold); font-size: 0.8rem; margin-bottom: 4px; }
+  .testimonial-nav {
+    display: flex; justify-content: center; gap: 12px; margin-top: 48px;
+  }
+  .nav-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(245,239,230,0.2);
+    border: none; cursor: none;
+    transition: background 0.3s, transform 0.3s;
+  }
+  .nav-dot.active { background: var(--gold); transform: scale(1.3); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #0f0704;
+    padding: 80px 0 40px;
+    border-top: 1px solid rgba(201,150,42,0.15);
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 60px;
+  }
+  .footer-brand .nav-logo { font-size: 1.8rem; display: block; margin-bottom: 16px; }
+  .footer-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: rgba(245,239,230,0.4);
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+  .footer-col h5 {
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+  }
+  .footer-col ul { list-style: none; }
+  .footer-col li { margin-bottom: 12px; }
+  .footer-col a {
+    color: rgba(245,239,230,0.5);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s;
+  }
+  .footer-col a:hover { color: var(--cream); }
+  .footer-bottom {
+    padding-top: 40px;
+    border-top: 1px solid rgba(245,239,230,0.06);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-bottom p { font-size: 0.8rem; color: rgba(245,239,230,0.3); }
+
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    nav { padding: 20px 24px; }
+    nav.scrolled { padding: 14px 24px; }
+    .nav-links { display: none; }
+    .container { padding: 0 24px; }
+    section { padding: 80px 0; }
+    .about-grid, .location-grid, .footer-grid, .specials-split { grid-template-columns: 1fr; }
+    .menu-grid { grid-template-columns: 1fr; }
+    .testimonial-card { width: calc(90vw - 48px); }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-text">Areca & Brew</div>
+  <div class="loader-sub">Indiranagar · Bengaluru</div>
+  <div class="loader-bar"><div class="loader-fill"></div></div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">Areca <span>& Brew</span></a>
+  <ul class="nav-links">
+    <li><a href="#about">Story</a></li>
+    <li><a href="#menu">Menu</a></li>
+    <li><a href="#ambiance">Space</a></li>
+    <li><a href="#location">Find Us</a></li>
+  </ul>
+  <button class="nav-reserve">Reserve a Table</button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+
+  <!-- Floating beans -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const hero = document.getElementById('hero');
+      for (let i = 0; i < 20; i++) {
+        const bean = document.createElement('div');
+        bean.className = 'bean';
+        bean.style.cssText = `
+          left: ${Math.random() * 100}%;
+          width: ${Math.random() * 6 + 5}px;
+          height: ${Math.random() * 8 + 10}px;
+          animation-duration: ${Math.random() * 20 + 15}s;
+          animation-delay: ${Math.random() * 10}s;
+        `;
+        hero.appendChild(bean);
+      }
+      // steam
+      for (let i = 0; i < 12; i++) {
+        const p = document.createElement('div');
+        p.className = 'steam-particle';
+        p.style.cssText = `
+          left: ${45 + Math.random() * 10}%;
+          --drift: ${(Math.random() - 0.5) * 80}px;
+          animation-duration: ${Math.random() * 4 + 3}s;
+          animation-delay: ${Math.random() * 5}s;
+          width: ${Math.random() * 6 + 2}px;
+          height: ${Math.random() * 6 + 2}px;
+        `;
+        hero.appendChild(p);
+      }
+    });
+  </script>
+
+  <div class="hero-circle"><div class="hero-circle-dot"></div></div>
+  <div class="hero-circle"></div>
+
+  <div class="hero-content">
+    <p class="hero-eyebrow">Est. 2019 · Indiranagar, Bengaluru</p>
+    <h1 class="hero-title">
+      Areca
+      <em>& Brew</em>
+    </h1>
+    <p class="hero-subtitle">Where Bengaluru's soul meets specialty coffee — a sanctuary for the curious and the caffeinated.</p>
+    <div class="hero-cta">
+      <a href="#menu" class="btn-primary">Explore Menu</a>
+      <a href="#about" class="btn-ghost">Our Story</a>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-section">
+  <div class="marquee-track" id="marqueeTrack">
+    <span class="marquee-item">☕ Chikmagalur Single Origin <span class="marquee-dot"></span></span>
+    <span class="marquee-item">🫖 Nilgiri Masala Chai <span class="marquee-dot"></span></span>
+    <span class="marquee-item">🥐 Filter Kaapi Croissant <span class="marquee-dot"></span></span>
+    <span class="marquee-item">🌿 Cold Brew Monsoon Malabar <span class="marquee-dot"></span></span>
+    <span class="marquee-item">🍰 Mysorepak Tart <span class="marquee-dot"></span></span>
+    <span class="marquee-item">☕ Areca Signature Blend <span class="marquee-dot"></span></span>
+    <span class="marquee-item">🥞 Bisi Bele Waffle <span class="marquee-dot"></span></span>
+    <span class="marquee-item">🍵 Coorg Spiced Latte <span class="marquee-dot"></span></span>
+    <!-- duplicate for seamless loop -->
+    <span class="marquee-item">☕ Chikmagalur Single Origin <span class="marquee-dot"></span></span>
+    <span class="marquee-item">🫖 Nilgiri Masala Chai <span class="marquee-dot"></span></span>
+    <span class="marquee-item">🥐 Filter Kaapi Croissant <span class="marquee-dot"></span></span>
+    <span class="marquee-item">🌿 Cold Brew Monsoon Malabar <span class="marquee-dot"></span></span>
+    <span class="marquee-item">🍰 Mysorepak Tart <span class="marquee-dot"></span></span>
+    <span class="marquee-item">☕ Areca Signature Blend <span class="marquee-dot"></span></span>
+    <span class="marquee-item">🥞 Bisi Bele Waffle <span class="marquee-dot"></span></span>
+    <span class="marquee-item">🍵 Coorg Spiced Latte <span class="marquee-dot"></span></span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-visual reveal">
+        <div class="about-img-card main">
+          <div class="card-inner">
+            <span style="font-size:90px">☕</span>
+            <span>Specialty Coffee</span>
+          </div>
+        </div>
+        <div class="about-img-card accent">
+          <div class="card-inner">
+            <span style="font-size:60px">🌱</span>
+            <span>Farm to Cup</span>
+          </div>
+        </div>
+        <div class="year-badge">
+          2019<small>Est.</small>
+        </div>
+      </div>
+      <div class="about-text">
+        <p class="section-label reveal">Our Story</p>
+        <h2 class="section-title reveal reveal-delay-1">Born from <em>Bengaluru's</em> Beautiful Chaos</h2>
+        <p class="about-body reveal reveal-delay-2">Areca & Brew was born on the buzzing 12th Main, Indiranagar — right in the heart of Bengaluru's creative soul. Named after the areca palm that lines Karnataka's countryside, we're a love letter to Indian coffee culture, reimagined.</p>
+        <p class="about-body reveal reveal-delay-2">We source directly from small-batch roasters across Chikmagalur, Coorg, and the Nilgiris. Every cup tells the story of the soil it came from.</p>
+        <div class="about-stats reveal reveal-delay-3">
+          <div>
+            <div class="stat-num">12<sup>+</sup></div>
+            <div class="stat-label">Origin Coffees</div>
+          </div>
+          <div>
+            <div class="stat-num">4.8<sup>★</sup></div>
+            <div class="stat-label">Zomato Rating</div>
+          </div>
+          <div>
+            <div class="stat-num">500<sup>+</sup></div>
+            <div class="stat-label">Daily Visitors</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MENU -->
+<section id="menu">
+  <div class="container">
+    <p class="section-label reveal">What We Brew</p>
+    <h2 class="section-title reveal reveal-delay-1">Crafted with <em>Intention</em></h2>
+    <div class="menu-tabs reveal reveal-delay-2">
+      <button class="tab-btn active" onclick="switchTab('coffee')">Coffee</button>
+      <button class="tab-btn" onclick="switchTab('food')">Food</button>
+      <button class="tab-btn" onclick="switchTab('specials')">Specials</button>
+    </div>
+
+    <div class="tab-content active menu-grid" id="tab-coffee">
+      <div class="menu-item reveal">
+        <span class="menu-item-icon">☕</span>
+        <div class="menu-item-name">Chikmagalur Pour Over</div>
+        <div class="menu-item-desc">Single-origin beans, light roast. Bright acidity with notes of bergamot and dark cherry.</div>
+        <div class="menu-item-footer"><span class="menu-price">₹280</span><span class="menu-tag">Signature</span></div>
+      </div>
+      <div class="menu-item reveal reveal-delay-1">
+        <span class="menu-item-icon">🧊</span>
+        <div class="menu-item-name">Monsoon Malabar Cold Brew</div>
+        <div class="menu-item-desc">12-hour cold steep. Earthy, full-bodied with a silky chocolate finish.</div>
+        <div class="menu-item-footer"><span class="menu-price">₹320</span><span class="menu-tag">Bestseller</span></div>
+      </div>
+      <div class="menu-item reveal reveal-delay-2">
+        <span class="menu-item-icon">🫧</span>
+        <div class="menu-item-name">Coorg Spiced Latte</div>
+        <div class="menu-item-desc">Double espresso, steamed oat milk, cardamom, cinnamon, and a hint of pepper.</div>
+        <div class="menu-item-footer"><span class="menu-price">₹350</span><span class="menu-tag hot">Hot</span></div>
+      </div>
+      <div class="menu-item reveal reveal-delay-1">
+        <span class="menu-item-icon">🌸</span>
+        <div class="menu-item-name">Rose Cold Brew</div>
+        <div class="menu-item-desc">Cold brew with Bangalore rose water, jaggery syrup, and coconut milk foam.</div>
+        <div class="menu-item-footer"><span class="menu-price">₹340</span><span class="menu-tag">New</span></div>
+      </div>
+      <div class="menu-item reveal reveal-delay-2">
+        <span class="menu-item-icon">🍫</span>
+        <div class="menu-item-name">Areca Dark Mocha</div>
+        <div class="menu-item-desc">House blend espresso, 70% Coorg dark cacao, steamed whole milk, cocoa dust.</div>
+        <div class="menu-item-footer"><span class="menu-price">₹310</span><span class="menu-tag hot">Hot</span></div>
+      </div>
+      <div class="menu-item reveal reveal-delay-3">
+        <span class="menu-item-icon">🫖</span>
+        <div class="menu-item-name">Nilgiri Masala Chai</div>
+        <div class="menu-item-desc">Nilgiri leaves, fresh ginger, black pepper, cardamom. Brewed strong, served sweet.</div>
+        <div class="menu-item-footer"><span class="menu-price">₹180</span><span class="menu-tag">Classic</span></div>
+      </div>
+    </div>
+
+    <div class="tab-content menu-grid" id="tab-food">
+      <div class="menu-item reveal">
+        <span class="menu-item-icon">🥐</span>
+        <div class="menu-item-name">Filter Kaapi Croissant</div>
+        <div class="menu-item-desc">Buttery laminated croissant with decoction-soaked custard cream and chicory glaze.</div>
+        <div class="menu-item-footer"><span class="menu-price">₹220</span><span class="menu-tag">Signature</span></div>
+      </div>
+      <div class="menu-item reveal reveal-delay-1">
+        <span class="menu-item-icon">🧇</span>
+        <div class="menu-item-name">Bisi Bele Waffle</div>
+        <div class="menu-item-desc">Savoury waffle inspired by the Kannada classic. Coconut chutney, ghee drizzle.</div>
+        <div class="menu-item-footer"><span class="menu-price">₹380</span><span class="menu-tag">Bestseller</span></div>
+      </div>
+      <div class="menu-item reveal reveal-delay-2">
+        <span class="menu-item-icon">🥗</span>
+        <div class="menu-item-name">Avocado Ragi Toast</div>
+        <div class="menu-item-desc">House-baked ragi sourdough, smashed avocado, microgreens, Chettinad spice oil.</div>
+        <div class="menu-item-footer"><span class="menu-price">₹340</span><span class="menu-tag">Healthy</span></div>
+      </div>
+      <div class="menu-item reveal reveal-delay-1">
+        <span class="menu-item-icon">🍰</span>
+        <div class="menu-item-name">Mysorepak Tart</div>
+        <div class="menu-item-desc">Ghee-rich Mysorepak frangipane in a dark chocolate shell. A Bengaluru original.</div>
+        <div class="menu-item-footer"><span class="menu-price">₹260</span><span class="menu-tag">New</span></div>
+      </div>
+      <div class="menu-item reveal reveal-delay-2">
+        <span class="menu-item-icon">🥪</span>
+        <div class="menu-item-name">Kerala Egg Club</div>
+        <div class="menu-item-desc">Toasted brioche, fried egg, pepper chicken, coconut mayo, and spiced tomato jam.</div>
+        <div class="menu-item-footer"><span class="menu-price">₹420</span><span class="menu-tag hot">Popular</span></div>
+      </div>
+      <div class="menu-item reveal reveal-delay-3">
+        <span class="menu-item-icon">🍮</span>
+        <div class="menu-item-name">Tender Coconut Panna Cotta</div>
+        <div class="menu-item-desc">Silky coconut milk panna cotta, palm sugar caramel, fresh coconut water gel.</div>
+        <div class="menu-item-footer"><span class="menu-price">₹290</span><span class="menu-tag">Dessert</span></div>
+      </div>
+    </div>
+
+    <div class="tab-content menu-grid" id="tab-specials">
+      <div class="menu-item reveal">
+        <span class="menu-item-icon">🌟</span>
+        <div class="menu-item-name">Weekend Brunch Board</div>
+        <div class="menu-item-desc">Rotating seasonal spread: three pastries, two small plates, and a coffee flight. For two.</div>
+        <div class="menu-item-footer"><span class="menu-price">₹890</span><span class="menu-tag">Weekend Only</span></div>
+      </div>
+      <div class="menu-item reveal reveal-delay-1">
+        <span class="menu-item-icon">🍶</span>
+        <div class="menu-item-name">Coffee Flight — Karnataka</div>
+        <div class="menu-item-desc">Three 60ml pours: Chikmagalur, Bababudangiri, and Coorg. Tasting notes included.</div>
+        <div class="menu-item-footer"><span class="menu-price">₹480</span><span class="menu-tag">Signature</span></div>
+      </div>
+      <div class="menu-item reveal reveal-delay-2">
+        <span class="menu-item-icon">🌙</span>
+        <div class="menu-item-name">Evening Sundowner Set</div>
+        <div class="menu-item-desc">Cold brew mocktail, two small bites, one dessert. Served 5–8 PM only.</div>
+        <div class="menu-item-footer"><span class="menu-price">₹650</span><span class="menu-tag hot">Limited</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AMBIANCE -->
+<section id="ambiance">
+  <div class="ambiance-header container">
+    <p class="section-label reveal" style="justify-content:center">The Space</p>
+    <h2 class="section-title reveal reveal-delay-1" style="text-align:center">A Place Worth <em>Staying In</em></h2>
+  </div>
+  <div class="gallery-scroll" id="galleryScroll">
+    <div class="gallery-card" style="background: linear-gradient(180deg, #3d1f0e 0%, #1a0d06 100%)">
+      <div class="gallery-bg">🌿</div>
+      <div class="gallery-label"><h4>The Garden Terrace</h4><p>Open-air · Shaded by old rain trees</p></div>
+    </div>
+    <div class="gallery-card" style="background: linear-gradient(180deg, #2c1810 0%, #1a0d06 100%)">
+      <div class="gallery-bg">📚</div>
+      <div class="gallery-label"><h4>The Reading Nook</h4><p>Curated books · No loud music</p></div>
+    </div>
+    <div class="gallery-card" style="background: linear-gradient(180deg, #4a2c1a 0%, #1a0d06 100%)">
+      <div class="gallery-bg">☕</div>
+      <div class="gallery-label"><h4>The Brew Bar</h4><p>Live pour-overs · Watch the craft</p></div>
+    </div>
+    <div class="gallery-card" style="background: linear-gradient(180deg, #3d2817 0%, #1a0d06 100%)">
+      <div class="gallery-bg">🎵</div>
+      <div class="gallery-label"><h4>The Live Stage</h4><p>Fri & Sat evenings · Local artists</p></div>
+    </div>
+    <div class="gallery-card" style="background: linear-gradient(180deg, #2a1a0d 0%, #1a0d06 100%)">
+      <div class="gallery-bg">💻</div>
+      <div class="gallery-label"><h4>The Work Den</h4><p>High-speed WiFi · Power sockets</p></div>
+    </div>
+    <div class="gallery-card" style="background: linear-gradient(180deg, #3d1f0e 0%, #1a0d06 100%)">
+      <div class="gallery-bg">🐾</div>
+      <div class="gallery-label"><h4>The Pet Corner</h4><p>Dog-friendly · Water bowls provided</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SPECIALS PANELS -->
+<section id="specials" style="padding:0">
+  <div class="specials-split">
+    <div class="special-panel">
+      <div class="special-bg-num">01</div>
+      <div class="special-emoji">🌅</div>
+      <h3 class="special-name">Morning Ritual</h3>
+      <p class="special-desc">Start your day right. Our morning set includes a freshly brewed pour-over, seasonal fruit bowl, and toasted ragi banana bread — all before 11 AM.</p>
+      <div class="special-price">₹450 <small style="font-size:0.5em;opacity:0.6">for one</small></div>
+    </div>
+    <div class="special-panel">
+      <div class="special-bg-num">02</div>
+      <div class="special-emoji">🌆</div>
+      <h3 class="special-name">Sunset Ritual</h3>
+      <p class="special-desc">Wind down with our signature cold brew cocktail (non-alcoholic), a charcuterie-style snack board, and dessert of the day. Garden terrace seating.</p>
+      <div class="special-price">₹680 <small style="font-size:0.5em;opacity:0.6">for two</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="container">
+    <div class="testimonials-header">
+      <p class="section-label reveal" style="justify-content:center">What People Say</p>
+      <h2 class="section-title reveal reveal-delay-1" style="text-align:center">Bengaluru Loves <em>Areca</em></h2>
+    </div>
+    <div class="testimonials-track-wrap reveal">
+      <div class="testimonials-track" id="testiTrack">
+        <div class="testimonial-card">
+          <div class="testimonial-quote">"</div>
+          <p class="testimonial-text">The Monsoon Malabar cold brew changed my entire understanding of Indian coffee. I've been to the best cafes in Tokyo and Melbourne — Areca & Brew holds its own effortlessly.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">🧑</div>
+            <div>
+              <div class="stars">★★★★★</div>
+              <div class="author-name">Arjun Krishnamurthy</div>
+              <div class="author-detail">Food Blogger · Indiranagar</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-quote">"</div>
+          <p class="testimonial-text">My go-to work-from-cafe. The WiFi is fast, the ambiance is quiet enough to focus, and the Coorg Spiced Latte is basically a productivity hack at this point.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">👩</div>
+            <div>
+              <div class="stars">★★★★★</div>
+              <div class="author-name">Priya Nambiar</div>
+              <div class="author-detail">Product Designer · Koramangala</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-quote">"</div>
+          <p class="testimonial-text">The Mysorepak Tart is a masterpiece. It's unexpected, it's bold, it's quintessentially Bengaluru. Just like this café. Nowhere else like it in the city.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">🧔</div>
+            <div>
+              <div class="stars">★★★★★</div>
+              <div class="author-name">Rahul Shetty</div>
+              <div class="author-detail">Chef & Food Critic</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-quote">"</div>
+          <p class="testimonial-text">Brought my dog on a Sunday morning. The staff brought him a water bowl without me asking. The garden terrace, the music, the coffee — it was a perfect Bengaluru morning.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">👩</div>
+            <div>
+              <div class="stars">★★★★★</div>
+              <div class="author-name">Meghna Rao</div>
+              <div class="author-detail">Dog Mom · HSR Layout</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-quote">"</div>
+          <p class="testimonial-text">Took the coffee flight and asked the barista questions for 20 minutes. He answered every single one with passion. This place genuinely cares about the craft.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">🧑</div>
+            <div>
+              <div class="stars">★★★★★</div>
+              <div class="author-name">Vikram Sundaram</div>
+              <div class="author-detail">Software Engineer · Whitefield</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-quote">"</div>
+          <p class="testimonial-text">The Bisi Bele Waffle is something I didn't know I needed in my life. Fusion done right — local flavours, global technique, and zero compromise. Absolute 10/10.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">👩</div>
+            <div>
+              <div class="stars">★★★★★</div>
+              <div class="author-name">Deepa Iyengar</div>
+              <div class="author-detail">Food Photographer · JP Nagar</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-nav">
+      <button class="nav-dot active" onclick="goSlide(0)"></button>
+      <button class="nav-dot" onclick="goSlide(1)"></button>
+      <button class="nav-dot" onclick="goSlide(2)"></button>
+    </div>
+  </div>
+</section>
+
+<!-- LOCATION -->
+<section id="location">
+  <div class="container">
+    <div class="location-grid">
+      <div class="location-info">
+        <p class="section-label reveal">Find Us</p>
+        <h2 class="section-title reveal reveal-delay-1">Heart of <em>Indiranagar</em></h2>
+        <div class="info-block reveal reveal-delay-2">
+          <h4>Address</h4>
+          <p>618, 12th Main Road<br>Indiranagar, Bengaluru<br>Karnataka — 560038</p>
+        </div>
+        <div class="info-block reveal reveal-delay-2">
+          <h4>Hours</h4>
+          <p>Monday – Friday: 7:30 AM – 10 PM<br>Saturday – Sunday: 8 AM – 11 PM</p>
+        </div>
+        <div class="info-block reveal reveal-delay-3">
+          <h4>Contact</h4>
+          <p>+91 98765 43210<br>hello@arecaandbrew.in</p>
+        </div>
+        <div class="info-block reveal reveal-delay-3">
+          <h4>Getting Here</h4>
+          <p>5 min walk from Indiranagar Metro<br>Parking available on 12th Main</p>
+        </div>
+      </div>
+      <div class="reveal reveal-delay-2">
+        <div class="map-placeholder">
+          <div class="map-grid"></div>
+          <div class="map-radius"></div>
+          <div class="map-radius"></div>
+          <div class="map-radius"></div>
+          <div class="map-pin-container">
+            <div class="map-pin">📍</div>
+            <div class="map-tag">Areca & Brew — 12th Main, Indiranagar</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#" class="nav-logo">Areca <span>& Brew</span></a>
+        <p class="footer-tagline">A sanctuary for specialty coffee<br>and slow mornings in Bengaluru.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Visit</h5>
+        <ul>
+          <li><a href="#menu">Menu</a></li>
+          <li><a href="#ambiance">The Space</a></li>
+          <li><a href="#specials">Daily Specials</a></li>
+          <li><a href="#location">Directions</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Experience</h5>
+        <ul>
+          <li><a href="#">Reserve a Table</a></li>
+          <li><a href="#">Private Events</a></li>
+          <li><a href="#">Coffee Workshops</a></li>
+          <li><a href="#">Gift Cards</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Social</h5>
+        <ul>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Zomato</a></li>
+          <li><a href="#">Google Maps</a></li>
+          <li><a href="#">LBB</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 Areca & Brew · Indiranagar, Bengaluru</p>
+      <p>Made with ☕ in Karnataka</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Loader
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const loader = document.getElementById('loader');
+      loader.style.transition = 'opacity 0.8s ease';
+      loader.style.opacity = '0';
+      setTimeout(() => loader.style.display = 'none', 800);
+    }, 2600);
+  });
+
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+  });
+  function animRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+  document.querySelectorAll('a, button, .menu-item, .gallery-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.transform = 'translate(-50%, -50%) scale(2.5)';
+      ring.style.width = '60px'; ring.style.height = '60px'; ring.style.opacity = '0.3';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+      ring.style.width = '36px'; ring.style.height = '36px'; ring.style.opacity = '0.6';
+    });
+  });
+
+  // Nav scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // Scroll reveal
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+  // Menu tabs
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      const names = ['coffee','food','specials'];
+      b.classList.toggle('active', names[i] === name);
+    });
+    document.querySelectorAll('.tab-content').forEach(c => {
+      c.classList.toggle('active', c.id === 'tab-' + name);
+    });
+  }
+
+  // Testimonial slider
+  let slide = 0;
+  const track = document.getElementById('testiTrack');
+  function goSlide(n) {
+    slide = n;
+    const w = track.parentElement.offsetWidth;
+    const cardW = track.querySelector('.testimonial-card').offsetWidth + 24;
+    track.style.transform = `translateX(-${slide * cardW * 3}px)`;
+    document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === n));
+  }
+  setInterval(() => goSlide((slide + 1) % 3), 5000);
+
+  // Gallery drag scroll
+  const gs = document.getElementById('galleryScroll');
+  let isDragging = false, startX, scrollLeft;
+  gs.addEventListener('mousedown', e => { isDragging = true; startX = e.pageX - gs.offsetLeft; scrollLeft = gs.scrollLeft; });
+  gs.addEventListener('mouseleave', () => isDragging = false);
+  gs.addEventListener('mouseup', () => isDragging = false);
+  gs.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - gs.offsetLeft;
+    gs.scrollLeft = scrollLeft - (x - startX) * 1.5;
+  });
+
+  // Parallax hero circles on mousemove
+  const circles = document.querySelectorAll('.hero-circle');
+  document.addEventListener('mousemove', e => {
+    const cx = (e.clientX / window.innerWidth - 0.5) * 20;
+    const cy = (e.clientY / window.innerHeight - 0.5) * 20;
+    circles.forEach((c, i) => {
+      const d = i === 0 ? 1 : -0.6;
+      c.style.transform = `translate(${cx * d}px, ${cy * d}px) rotate(${Date.now() * 0.0001 * (i === 0 ? 1 : -1) * 360}deg)`;
+    });
+  });
+</script>
+</body>
+</html>
